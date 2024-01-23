@@ -1,0 +1,5 @@
+{
+  "noImplictAny": true, // запрещает использовать тип any
+  "strictNullChecks": true,  // запрещем использование null или undefined если это явно не указано в типе,
+  "noEmitOnError": true
+}
