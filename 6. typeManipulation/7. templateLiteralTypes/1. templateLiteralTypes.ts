@@ -63,7 +63,7 @@ type TypeMakeEventsObjectGood<O> = {
     events: `${Key}${Events}`,
     callback: (newItem: O[Key]) => void
   ): void;
-}
+};
 
 declare function makeEventsObjectGood<T>(
   object: T
