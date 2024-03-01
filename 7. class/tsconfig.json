@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "strictNullChecks": true,
-    "strictPropertyInitialization": true
+    "strictPropertyInitialization": true,
+    "lib": ["ES2015", "DOM"]
   }
 }

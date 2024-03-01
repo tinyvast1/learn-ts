@@ -70,8 +70,6 @@ const pug = new Dog();
 pug.move();
 pug.woof(5);
 
-
-
 // ПЕРЕОПРЕДЕЛЯЮЩИЕ МЕТОДЫ
 
 // производные классы также могут переопределять свойства / методы базового класса
@@ -114,4 +112,104 @@ class DerivedBad extends Base {
   // Target signature provides too few arguments. Expected 1 or more, but got 0.
 }
 
+//ОБЪЯВЛЕНИЕ ПОЛЕЙ ТОЛЬКО ДЛЯ ТИПОВ
 
+// представим что у нас есть класс j с свойством x и типом y, 
+// мы создаём класс z наследуясь от j
+// и при объявлении типов в классе z мы хотим у свойства x указать другой тип
+// но как только мы это сделаем получим ошибку потому что мы нигде свойсто x не инициализируем
+// так как оно инициализируется в super
+// нужно указать declare перед свойстом чтобы сказать что оно будет
+
+// но ошибку мы бы получили если бы у нас был target >= es2022 или useDefineClassFields: true
+
+interface Animal {
+  name: string;
+}
+
+interface Dog extends Animal {
+  breed: string;
+}
+
+class AnimalHouse {
+  resident: Animal
+  constructor(animal: Animal) {
+    this.resident = animal
+  }
+}
+
+class DogHouse extends AnimalHouse {
+  declare resident: Dog // поставили declare
+  constructor(dog: Dog) {
+    super(dog);
+  }
+}
+
+
+
+// ПОРЯДОК ИНИЦИАЛИЗАЦИИ
+
+// порядок инициализации классоы JavaScript в некоторыз случаях может удивлять
+// например
+
+class BaseName {
+  name = 'base';
+  constructor() {
+    console.log(`My name ${this.name}`)
+  }
+}
+
+class DerivedName extends BaseName {
+  name = 'derived'
+}
+
+const newDerived = new DerivedName(); // log -> My name base
+
+// так произошло, потому что порядок инизиалиции классов такой
+
+// 1. инициализируются поля базового класса
+// 2. запускается конструктор базового класса
+// 3. инизциализируются поля производного класса
+// 4. запускается конструктор производного класса
+
+
+
+// НАСЛЕДОВАНИЕ ВСТРОЕННЫХ ТИПОВ
+
+// конструкторы в es2015 возвращающие объект, при изспользовании super 
+// заменяют значение this на свое во всей цепочке наследования
+
+// это связанно с тем что для установки цепочки прототипов Error, Array и др. встроенные классы
+// используют функцию new.target, а при компиляции в старый стандарт new.tager нет,
+// поэтому может получиться странное поведение
+// пример
+
+class MsgErrorBad extends Error {
+  constructor(m: string) {
+    super(m) // при вызове супер this MsgError подмениться на this Error
+    // поэтому все новые методы и свойства могут быть не доступны
+  }
+
+  sayHello() { // при вызове этого метода можем получить ошибку так как его нет
+    console.log(`Hello ${this.message}`)
+  }
+}
+
+(new MsgErrorBad("s")) instanceof MsgErrorBad 
+// получим false так как теперь этот класс соотвествует Error
+
+// можно вручную исправить это поведение
+
+class MsgError extends Error {
+  constructor(m: string) {
+    super(m)
+
+    Object.setPrototypeOf(this, MsgError.prototype)
+  }
+
+  sayHello() { 
+    console.log(`Hello ${this.message}`)
+  }
+}
+
+// но эти обходные пути не будут работать, internet Explorer 10
